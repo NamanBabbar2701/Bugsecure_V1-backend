@@ -1,0 +1,31 @@
+FROM debian:bookworm-slim
+
+# Install runtime tooling:
+# - Python
+# - Node.js
+# - OpenJDK 17 (javac + java)
+# - iptables (outbound blocking)
+# - coreutils (timeout)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    python3 \
+    python3-pip \
+    nodejs \
+    npm \
+    openjdk-17-jdk \
+    iptables \
+    coreutils \
+    ca-certificates \
+  && rm -rf /var/lib/apt/lists/*
+
+# Create expected directories.
+RUN mkdir -p /sandbox/www /sandbox/work /sandbox/runner
+
+# Security scan script is bundled into the image.
+COPY ./security_scan.py /sandbox/runner/security_scan.py
+
+# The container command will start:
+# - outbound-blocking firewall (OUTPUT)
+# - a local static server for /sandbox/www
+# and then keep the container alive.
+EXPOSE 8080
+
